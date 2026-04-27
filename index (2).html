@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Lost Classroom of Alexandria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --stone: #c8b89a;
+      --stone-dark: #8b7355;
+      --stone-darker: #5c4a2a;
+      --gold: #d4a017;
+      --gold-light: #f0c040;
+      --scroll: #f5e6c8;
+      --ink: #2c1a0e;
+      --danger: #8b2500;
+      --success: #1a4a1a;
+      --glow: rgba(212,160,23,0.4);
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #1a0f05 0%, #2c1a0e 40%, #1a0f05 100%);
+      font-family: 'Crimson Text', serif;
+      color: var(--stone);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── STARS ── */
+    #stars {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+
+    /* ── LAYOUT ── */
+    #app {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 680px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .screen { display: none; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+    .screen.active { display: flex; }
+
+    /* ── TITLE ── */
+    h1.title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.2rem, 4vw, 1.7rem);
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+      text-shadow: 0 0 20px var(--glow), 0 2px 4px rgba(0,0,0,.8);
+    }
+    .subtitle {
+      font-size: 1rem;
+      color: var(--stone);
+      opacity: 0.85;
+      font-style: italic;
+      margin-bottom: 1.5rem;
+    }
+    .lore {
+      max-width: 520px;
+      font-size: 1rem;
+      line-height: 1.75;
+      color: var(--stone);
+      background: rgba(0,0,0,.4);
+      border: 1px solid rgba(212,160,23,.25);
+      border-radius: 6px;
+      padding: 1.1rem 1.4rem;
+      margin-bottom: 1.75rem;
+    }
+    .lore strong { color: var(--gold-light); }
+
+    /* ── BUTTONS ── */
+    .btn-gold {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #8b6914, #d4a017, #8b6914);
+      color: #1a0f05;
+      border: none;
+      cursor: pointer;
+      padding: 0.7rem 2.2rem;
+      border-radius: 4px;
+      letter-spacing: 0.07em;
+      box-shadow: 0 0 12px rgba(212,160,23,.5), inset 0 1px 0 rgba(255,255,255,.2);
+      transition: all 0.2s;
+    }
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #d4a017, #f0c040, #d4a017);
+      box-shadow: 0 0 22px rgba(212,160,23,.85), inset 0 1px 0 rgba(255,255,255,.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-stone {
+      font-family: 'Crimson Text', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      background: rgba(200,184,154,.08);
+      color: var(--stone);
+      border: 1px solid rgba(200,184,154,.3);
+      cursor: pointer;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      transition: all 0.2s;
+      display: block;
+      width: 100%;
+      margin: 0.4rem 0;
+      text-align: left;
+      line-height: 1.5;
+    }
+    .btn-stone:hover:not(:disabled) {
+      background: rgba(212,160,23,.15);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+    .btn-stone:disabled { cursor: default; }
+
+    /* ── PUZZLE HEADER ── */
+    .puzzle-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 1px solid rgba(212,160,23,.25);
+    }
+    .chamber-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+    }
+    .score-display {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      color: var(--stone-dark);
+    }
+    .score-val { color: var(--gold-light); }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,.08);
+      border-radius: 3px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #8b6914, #f0c040);
+      border-radius: 3px;
+      transition: width 0.6s ease;
+    }
+
+    /* ── TORCHES ── */
+    .torches { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; }
+    .torch {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(200,184,154,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      transition: all 0.4s;
+    }
+    .torch.lit {
+      background: radial-gradient(circle, rgba(240,192,64,.3), rgba(212,160,23,.1));
+      border-color: var(--gold);
+      box-shadow: 0 0 10px var(--glow);
+      animation: torchFlicker 1.8s ease-in-out infinite;
+    }
+
+    /* ── SCROLL CARD ── */
+    .scroll-card {
+      width: 100%;
+      background: linear-gradient(160deg, #f5e6c8, #ede0b8, #f5e6c8);
+      border: 2px solid var(--stone-dark);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.1rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,.55), inset 0 0 30px rgba(180,140,80,.1);
+      position: relative;
+      color: var(--ink);
+      text-align: left;
+    }
+    .scroll-card::before {
+      content: '';
+      position: absolute;
+      top: 8px; left: 8px; right: 8px; bottom: 8px;
+      border: 1px solid rgba(92,74,42,.2);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    .puzzle-icon { font-size: 1.5rem; margin-bottom: 0.4rem; display: block; }
+    .puzzle-chamber-name {
+      font-family: 'Cinzel', serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--stone-darker);
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+    .puzzle-q {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      color: var(--ink);
+    }
+    .puzzle-context {
+      font-size: 0.92rem;
+      font-style: italic;
+      color: #5c4a2a;
+      line-height: 1.5;
+    }
+
+    /* ── FEEDBACK ── */
+    .feedback-card {
+      width: 100%;
+      border-radius: 6px;
+      padding: 0.9rem 1.1rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.95rem;
+      line-height: 1.65;
+      text-align: left;
+    }
+    .feedback-card.correct {
+      background: rgba(26,74,26,.5);
+      border: 1px solid rgba(100,180,100,.4);
+      color: #a8e6a8;
+    }
+    .feedback-card.wrong {
+      background: rgba(139,37,0,.35);
+      border: 1px solid rgba(200,80,50,.3);
+      color: #f0a080;
+    }
+    .fb-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.35rem;
+    }
+
+    /* ── WIN SCREEN ── */
+    .win-glow {
+      font-size: 3rem;
+      margin-bottom: 0.75rem;
+      filter: drop-shadow(0 0 14px var(--glow));
+    }
+    .final-score-box {
+      background: rgba(212,160,23,.12);
+      border: 1px solid rgba(212,160,23,.4);
+      border-radius: 6px;
+      padding: 1rem 2.5rem;
+      margin: 1rem 0;
+      font-family: 'Cinzel', serif;
+    }
+    .score-num {
+      font-size: 2.5rem;
+      color: var(--gold-light);
+      font-weight: 700;
+      display: block;
+      line-height: 1.2;
+    }
+    .rank-label { font-size: 0.85rem; color: var(--stone); }
+    .win-items {
+      list-style: none;
+      margin: 0.75rem 0 1.25rem;
+      text-align: left;
+      font-size: 0.95rem;
+      line-height: 1.9;
+      max-width: 480px;
+    }
+    .win-items li::before { content: '⟡ '; color: var(--gold); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes torchFlicker { 0%,100%{opacity:1} 50%{opacity:.7} }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-6px)}
+      75%{transform:translateX(6px)}
+    }
+    .shake { animation: shake 0.35s ease; }
+  </style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<div id="app">
+
+  <!-- TITLE SCREEN -->
+  <div class="screen active" id="screen-title">
+    <svg width="200" height="100" viewBox="0 0 200 100" style="margin-bottom:1rem;filter:drop-shadow(0 0 12px rgba(212,160,23,.5))">
+      <rect x="10" y="76" width="180" height="14" rx="3" fill="#8b7355" opacity=".9"/>
+      <rect x="20" y="60" width="160" height="18" rx="3" fill="#a08060" opacity=".9"/>
+      <rect x="32" y="22" width="136" height="40" fill="#c8b89a" opacity=".8"/>
+      <rect x="38" y="30" width="13" height="32" rx="2" fill="#8b7355"/>
+      <rect x="60" y="30" width="13" height="32" rx="2" fill="#8b7355"/>
+      <rect x="82" y="30" width="13" height="32" rx="2" fill="#8b7355"/>
+      <rect x="104" y="30" width="13" height="32" rx="2" fill="#8b7355"/>
+      <rect x="126" y="30" width="13" height="32" rx="2" fill="#8b7355"/>
+      <rect x="148" y="30" width="13" height="32" rx="2" fill="#8b7355"/>
+      <polygon points="32,22 100,4 168,22" fill="#d4a017" opacity=".9"/>
+      <text x="100" y="16" text-anchor="middle" font-size="9" fill="#1a0f05" font-family="serif" font-weight="bold">ΑΛΕΞ</text>
+      <rect x="86" y="60" width="28" height="30" rx="2" fill="#5c4a2a"/>
+      <rect x="90" y="65" width="7" height="16" rx="1" fill="#8b7355"/>
+      <rect x="103" y="65" width="7" height="16" rx="1" fill="#8b7355"/>
+    </svg>
+
+    <h1 class="title">The Lost Classroom<br>of Alexandria</h1>
+    <p class="subtitle">A Classroom Management Escape Room</p>
+    <p class="lore">
+      Deep beneath the sands, archaeologists have uncovered the legendary Classroom of Alexandria —
+      a place of learning frozen in chaos. Four ancient seals lock the vault.
+      Only an educator with mastery of <strong>classroom management</strong> can restore order,
+      break the seals, and escape before the tomb closes forever.
+    </p>
+    <div class="torches" id="torches-title">
+      <div class="torch" id="t0">🔦</div>
+      <div class="torch" id="t1">🔦</div>
+      <div class="torch" id="t2">🔦</div>
+      <div class="torch" id="t3">🔦</div>
+    </div>
+    <button class="btn-gold" onclick="startGame()">⟡ Enter the Tomb ⟡</button>
+  </div>
+
+  <!-- PUZZLE SCREEN -->
+  <div class="screen" id="screen-puzzle">
+    <div class="puzzle-header">
+      <span class="chamber-label" id="chamber-label">Chamber I of IV</span>
+      <span class="score-display">Score: <span class="score-val" id="score-disp">0</span></span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="torches" id="torches-puzzle">
+      <div class="torch" id="tp0">🔦</div>
+      <div class="torch" id="tp1">🔦</div>
+      <div class="torch" id="tp2">🔦</div>
+      <div class="torch" id="tp3">🔦</div>
+    </div>
+    <div class="scroll-card" id="scroll-card">
+      <span class="puzzle-icon" id="puzzle-icon">📜</span>
+      <div class="puzzle-chamber-name" id="puzzle-chamber-name">THE SEATING STONES</div>
+      <p class="puzzle-q" id="puzzle-q"></p>
+      <p class="puzzle-context" id="puzzle-context"></p>
+    </div>
+    <div id="feedback-area"></div>
+    <div class="choices" id="choices"></div>
+    <button class="btn-gold" id="btn-next" style="display:none;margin-top:.85rem" onclick="nextPuzzle()">
+      ⟡ Continue deeper... ⟡
+    </button>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div class="screen" id="screen-win">
+    <div class="win-glow">🏛️</div>
+    <h1 class="title">The Vault is Unsealed!</h1>
+    <p class="subtitle">You have restored order to the Lost Classroom</p>
+    <div class="final-score-box">
+      <span style="font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.08em">Final Score</span>
+      <span class="score-num" id="final-score">0</span>
+      <span class="rank-label" id="rank-label">Master Educator</span>
+    </div>
+    <div class="torches" style="justify-content:center">
+      <div class="torch lit">🔥</div>
+      <div class="torch lit">🔥</div>
+      <div class="torch lit">🔥</div>
+      <div class="torch lit">🔥</div>
+    </div>
+    <ul class="win-items" id="win-summary"></ul>
+    <button class="btn-gold" onclick="restartGame()">⟡ Play Again ⟡</button>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+  /* ── STAR FIELD ── */
+  (function(){
+    const c = document.getElementById('stars');
+    for (let i = 0; i < 80; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top  = Math.random() * 100 + '%';
+      s.style.opacity = (Math.random() * 0.55 + 0.1).toFixed(2);
+      c.appendChild(s);
+    }
+  })();
+
+  /* ── PUZZLE DATA ── */
+  const puzzles = [
+    {
+      chamber: 'Chamber I — The Seating Stones',
+      icon: '🗿',
+      shortName: 'THE SEATING STONES',
+      question: 'An ancient stone tablet shows a chaotic seating arrangement. Students are off-task, talking across the room, and ignoring instruction. What is your FIRST move?',
+      context: 'The inscription reads: "Proximity is the oldest magic."',
+      choices: [
+        { text: 'Rearrange seats to reduce distracting clusters and increase proximity to instructional areas', correct: true },
+        { text: 'Issue written warnings to students who are talking', correct: false },
+        { text: 'Dim the torches and wait for silence', correct: false },
+        { text: 'Continue teaching and ignore the disruption', correct: false },
+      ],
+      correct: '🔓 SEAL BROKEN! Strategic seating is one of the most powerful and proactive classroom management tools — proximity and arrangement prevent disruption before it starts.',
+      wrong: '⚠️ The seal holds. Reactive measures treat symptoms. The inscription hints at proximity — rearranging seats addresses the root cause.',
+    },
+    {
+      chamber: 'Chamber II — The Disruption Scroll',
+      icon: '📜',
+      shortName: 'THE DISRUPTION SCROLL',
+      question: 'You unroll a scroll describing a student who repeatedly calls out answers without raising their hand, disrupting the flow of discussion for everyone.',
+      context: 'The scroll warns: "Correct the behavior, not the soul."',
+      choices: [
+        { text: 'Privately redirect the student, acknowledge their enthusiasm, and remind them of the expected procedure', correct: true },
+        { text: 'Publicly call out the student in front of the class to make an example', correct: false },
+        { text: 'Remove the student from the classroom immediately', correct: false },
+      ],
+      correct: '🔓 SEAL BROKEN! Private, specific redirection preserves the student\'s dignity while clearly addressing the behavior — a cornerstone of restorative practice.',
+      wrong: '⚠️ The seal holds. Public shaming damages trust and escalates behavior. The scroll reminds us to separate the behavior from the person.',
+    },
+    {
+      chamber: 'Chamber III — The Torch of Transitions',
+      icon: '🔥',
+      shortName: 'THE TORCH OF TRANSITIONS',
+      question: 'Students are transitioning from group work back to whole-class instruction. The room is loud, students are slow to settle, and two minutes have been lost. What do you do?',
+      context: 'Etched above the door: "Rituals outlast rulers."',
+      choices: [
+        { text: 'Use a consistent, pre-taught attention signal and wait for full compliance before continuing', correct: true },
+        { text: 'Shout over the noise to get attention quickly', correct: false },
+        { text: 'Skip the transition and start a new activity to reset the energy', correct: false },
+        { text: 'Punish the whole class with lost recess time', correct: false },
+      ],
+      correct: '🔓 SEAL BROKEN! A pre-taught attention signal is a ritual students know and respond to. Consistency makes transitions faster over time — the inscription is wise!',
+      wrong: '⚠️ The seal holds. Shouting or punishment creates anxiety without teaching expected behavior. Rituals, as the inscription says, must be pre-taught and practiced.',
+    },
+    {
+      chamber: 'Chamber IV — The Final Seal',
+      icon: '👑',
+      shortName: 'THE FINAL SEAL',
+      question: 'FINAL BOSS: Mid-lesson, a student knocks over a chair in frustration, two others start giggling uncontrollably, and a third asks to go to the nurse. The class is watching. What is the BEST sequence?',
+      context: 'The pharaoh\'s voice echoes: "Calm is the first response. Order is the second."',
+      choices: [
+        { text: 'Stay calm, address safety first (the chair), quietly redirect the giggling students, then check in privately with the frustrated student after class', correct: true },
+        { text: 'Immediately send the frustrated student to the office and continue teaching', correct: false },
+        { text: 'Pause everything, lecture the class about behavior, and cancel the activity', correct: false },
+      ],
+      correct: '👑 VAULT UNSEALED! You responded with calm, prioritized safety, used minimal public attention, and planned a private follow-up — master-level classroom management!',
+      wrong: '⚠️ The final seal holds. Escalating or lecturing the class shifts energy negatively. The pharaoh\'s wisdom: calm first, then restore order methodically.',
+    },
+  ];
+
+  /* ── STATE ── */
+  let currentPuzzle = 0, score = 0, torchesLit = 0, answered = false;
+
+  /* ── HELPERS ── */
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function updateTorches(containerId, prefix) {
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById(prefix + i);
+      if (!el) continue;
+      if (i < torchesLit) { el.classList.add('lit'); el.textContent = '🔥'; }
+      else                { el.classList.remove('lit'); el.textContent = '🔦'; }
+    }
+  }
+
+  /* ── GAME FLOW ── */
+  function startGame() {
+    currentPuzzle = 0; score = 0; torchesLit = 0; answered = false;
+    show('screen-puzzle');
+    loadPuzzle();
+  }
+
+  function loadPuzzle() {
+    answered = false;
+    const p = puzzles[currentPuzzle];
+    const numerals = ['I','II','III','IV'];
+
+    document.getElementById('chamber-label').textContent = `Chamber ${numerals[currentPuzzle]} of IV`;
+    document.getElementById('score-disp').textContent = score;
+    document.getElementById('progress-fill').style.width = (currentPuzzle / puzzles.length * 100) + '%';
+    document.getElementById('puzzle-icon').textContent = p.icon;
+    document.getElementById('puzzle-chamber-name').textContent = p.shortName;
+    document.getElementById('puzzle-q').textContent = p.question;
+    document.getElementById('puzzle-context').textContent = p.context;
+    document.getElementById('feedback-area').innerHTML = '';
+    document.getElementById('btn-next').style.display = 'none';
+
+    const choicesEl = document.getElementById('choices');
+    choicesEl.innerHTML = '';
+    const shuffled = [...p.choices].sort(() => Math.random() - 0.5);
+    shuffled.forEach(ch => {
+      const btn = document.createElement('button');
+      btn.className = 'btn-stone';
+      btn.textContent = ch.text;
+      btn.onclick = () => handleAnswer(ch.correct, p, btn);
+      choicesEl.appendChild(btn);
+    });
+
+    updateTorches('torches-puzzle', 'tp');
+  }
+
+  function handleAnswer(correct, p, btn) {
+    if (answered) return;
+    answered = true;
+
+    document.querySelectorAll('#choices .btn-stone').forEach(b => { b.disabled = true; b.style.opacity = '0.45'; });
+    btn.style.opacity = '1';
+
+    const fb = document.getElementById('feedback-area');
+
+    if (correct) {
+      score += 100;
+      torchesLit++;
+      btn.style.borderColor = '#4a9a4a';
+      btn.style.color = '#7ada7a';
+      fb.innerHTML = `<div class="feedback-card correct"><div class="fb-title">⟡ SEAL BROKEN ⟡</div>${p.correct}</div>`;
+      updateTorches('torches-puzzle', 'tp');
+    } else {
+      btn.style.borderColor = '#8b2500';
+      btn.style.color = '#f08060';
+      fb.innerHTML = `<div class="feedback-card wrong"><div class="fb-title">✕ THE SEAL HOLDS</div>${p.wrong}</div>`;
+      const sc = document.getElementById('scroll-card');
+      sc.classList.add('shake');
+      setTimeout(() => sc.classList.remove('shake'), 400);
+    }
+
+    document.getElementById('score-disp').textContent = score;
+
+    const isLast = currentPuzzle === puzzles.length - 1;
+    const btnNext = document.getElementById('btn-next');
+    btnNext.style.display = 'inline-block';
+    btnNext.textContent = isLast ? '⟡ Open the Vault ⟡' : '⟡ Continue deeper... ⟡';
+  }
+
+  function nextPuzzle() {
+    currentPuzzle++;
+    if (currentPuzzle >= puzzles.length) {
+      showWin();
+    } else {
+      loadPuzzle();
+    }
+  }
+
+  function showWin() {
+    document.getElementById('final-score').textContent = score;
+    const rank =
+      score >= 400 ? '👑 Pharaoh of Pedagogy' :
+      score >= 300 ? '⚗️ Scholar of the Sands' :
+      score >= 200 ? '📜 Keeper of the Scrolls' :
+                     '🏺 Apprentice Archaeologist';
+    document.getElementById('rank-label').textContent = rank;
+
+    const ul = document.getElementById('win-summary');
+    ul.innerHTML = '';
+    [
+      'Proactive seating prevents disruption before it begins',
+      'Private redirection preserves student dignity and trust',
+      'Pre-taught transitions create lasting classroom rituals',
+      'Calm, sequenced responses de-escalate crises effectively',
+    ].forEach(f => {
+      const li = document.createElement('li');
+      li.textContent = f;
+      ul.appendChild(li);
+    });
+
+    show('screen-win');
+  }
+
+  function restartGame() {
+    torchesLit = 0;
+    updateTorches('torches-title', 't');
+    show('screen-title');
+  }
+</script>
+</body>
+</html>
